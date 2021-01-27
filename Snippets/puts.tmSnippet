@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>content</key>
-	<string>puts "*"*80
-puts ${1:"*"*80}
-puts "*"*80$2
+	<string>puts "${1:*}"*80
+puts $2
+puts "${1:*}"*80$3
 </string>
 	<key>name</key>
 	<string>puts</string>
