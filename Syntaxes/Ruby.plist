@@ -52,7 +52,6 @@
 		<string>ru</string>
 		<string>prawn</string>
 		<string>Cheffile</string>
-		<string>Gemfile</string>
 		<string>Guardfile</string>
 		<string>Hobofile</string>
 		<string>Vagrantfile</string>
@@ -73,9 +72,32 @@
 		<string>Scanfile</string>
 		<string>Snapfile</string>
 		<string>Gymfile</string>
+		<string>jb</string>
+		<string>Podfile</string>
 	</array>
 	<key>firstLineMatch</key>
-	<string>^#!/.*\bruby|^#\s+-\*-\s*ruby\s*-\*-</string>
+	<string>(?x)
+# Hashbang
+^\#!.*(?:\s|\/)
+(?:ruby[\.\d]*|macruby|rake|jruby|rbx|ruby_executable_hooks)
+(?:$|\s)
+|
+# Modeline
+(?i:
+    # Emacs
+    -\*-(?:\s*(?=[^:;\s]+\s*-\*-)|(?:.*?[;\s]|(?&lt;=-\*-))mode\s*:\s*)
+    ruby
+    (?=[\s;]|(?&lt;![-*])-\*-).*?-\*-
+  |
+    # Vim
+    (?:(?:\s|^)vi(?:m[&lt;=&gt;]?\d+|m)?|\sex)
+    (?=:(?=\s*set?\s[^\n:]+:)|:(?!\s*set?\s))
+    (?:(?:\s|\s*:\s*)\w*(?:\s*=(?:[^\n\\\s]|\\.)*)?)*
+    [\s:]
+    (?:filetype|ft|syntax)\s*=
+    ruby
+    (?=\s|:|$)
+)</string>
 	<key>keyEquivalent</key>
 	<string>^~R</string>
 	<key>name</key>
@@ -248,9 +270,45 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(__(FILE|LINE)__)\b(?![?!])</string>
+			<string>\b(__(dir|FILE|LINE)__)\b(?![?!])</string>
 			<key>name</key>
 			<string>variable.language.ruby</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>^__END__\n</string>
+			<key>captures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>string.unquoted.program-block.ruby</string>
+				</dict>
+			</dict>
+			<key>comment</key>
+			<string>__END__ marker</string>
+			<key>contentName</key>
+			<string>text.plain</string>
+			<key>end</key>
+			<string>(?=not)impossible</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(?=&lt;?xml|&lt;(?i:html\b)|!DOCTYPE (?i:html\b))</string>
+					<key>end</key>
+					<string>(?=not)impossible</string>
+					<key>name</key>
+					<string>text.html.embedded.ruby</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>text.html.basic</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
 		</dict>
 		<dict>
 			<key>match</key>
@@ -262,13 +320,13 @@
 			<key>comment</key>
 			<string> everything being a method but having a special function is a..</string>
 			<key>match</key>
-			<string>\b(initialize|new|loop|include|extend|prepend|fail|raise|attr_reader|attr_writer|attr_accessor|attr|catch|throw|private|private_class_method|module_function|public|protected|refine|using)\b(?![?!])</string>
+			<string>\b(initialize|new|loop|include|extend|prepend|fail|raise|attr_reader|attr_writer|attr_accessor|attr|catch|throw|private|private_class_method|module_function|public|public_class_method|protected|refine|using)\b(?![?!])</string>
 			<key>name</key>
 			<string>keyword.other.special-method.ruby</string>
 		</dict>
 		<dict>
 			<key>begin</key>
-			<string>\b(?&lt;!\.|::)(require|require_relative|gem)\b</string>
+			<string>\b(?&lt;!\.|::)(require|require_relative)\b</string>
 			<key>captures</key>
 			<dict>
 				<key>1</key>
@@ -465,27 +523,12 @@
 							<string>\G([&amp;*]?)(?:([_a-zA-Z]\w*(:))|([_a-zA-Z]\w*))</string>
 						</dict>
 						<dict>
-							<key>begin</key>
-							<string>\(</string>
-							<key>captures</key>
-							<dict>
-								<key>0</key>
-								<dict>
-									<key>name</key>
-									<string>punctuation.section.function.ruby</string>
-								</dict>
-							</dict>
-							<key>comment</key>
-							<string>Prevent end pattern of parent rule from ending prematurely.</string>
-							<key>end</key>
-							<string>\)</string>
-							<key>patterns</key>
-							<array>
-								<dict>
-									<key>include</key>
-									<string>$self</string>
-								</dict>
-							</array>
+							<key>include</key>
+							<string>#parens</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#braces</string>
 						</dict>
 						<dict>
 							<key>include</key>
@@ -494,6 +537,85 @@
 					</array>
 				</dict>
 			</array>
+			<key>repository</key>
+			<dict>
+				<key>braces</key>
+				<dict>
+					<key>begin</key>
+					<string>\{</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.section.function.begin.ruby</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>\}</string>
+					<key>endCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.section.function.end.ruby</string>
+						</dict>
+					</dict>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#parens</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#braces</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>$self</string>
+						</dict>
+					</array>
+				</dict>
+				<key>parens</key>
+				<dict>
+					<key>begin</key>
+					<string>\(</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.section.function.begin.ruby</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>\)</string>
+					<key>endCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.section.function.end.ruby</string>
+						</dict>
+					</dict>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#parens</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#braces</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>$self</string>
+						</dict>
+					</array>
+				</dict>
+			</dict>
 		</dict>
 		<dict>
 			<key>begin</key>
@@ -607,7 +729,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(0[dD]\d|[1-9])(?&gt;_?\d)*r?i?\b</string>
+			<string>\b(0|(0[dD]\d|[1-9])(?&gt;_?\d)*)r?i?\b</string>
 			<key>name</key>
 			<string>constant.numeric.integer.ruby</string>
 		</dict>
@@ -966,42 +1088,6 @@
 		</dict>
 		<dict>
 			<key>begin</key>
-			<string>^__END__\n</string>
-			<key>captures</key>
-			<dict>
-				<key>0</key>
-				<dict>
-					<key>name</key>
-					<string>string.unquoted.program-block.ruby</string>
-				</dict>
-			</dict>
-			<key>comment</key>
-			<string>__END__ marker</string>
-			<key>contentName</key>
-			<string>text.plain</string>
-			<key>end</key>
-			<string>(?=not)impossible</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>begin</key>
-					<string>(?=&lt;?xml|&lt;(?i:html\b)|!DOCTYPE (?i:html\b))</string>
-					<key>end</key>
-					<string>(?=not)impossible</string>
-					<key>name</key>
-					<string>text.html.embedded.ruby</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>text.html.basic</string>
-						</dict>
-					</array>
-				</dict>
-			</array>
-		</dict>
-		<dict>
-			<key>begin</key>
 			<string>(?=(?&gt;&lt;&lt;[-~]("?)((?:[_\w]+_|)HTML)\b\1))</string>
 			<key>comment</key>
 			<string>Heredoc with embedded html</string>
@@ -1049,6 +1135,64 @@
 						<dict>
 							<key>include</key>
 							<string>text.html.basic</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#escaped_char</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>(?=(?&gt;&lt;&lt;[-~]("?)((?:[_\w]+_|)XML)\b\1))</string>
+			<key>comment</key>
+			<string>Heredoc with embedded xml</string>
+			<key>end</key>
+			<string>(?!\G)</string>
+			<key>name</key>
+			<string>meta.embedded.block.xml</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(?&gt;&lt;&lt;[-~]("?)((?:[_\w]+_|)XML)\b\1)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.string.begin.ruby</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>text.xml</string>
+					<key>end</key>
+					<string>\s*\2$\n?</string>
+					<key>endCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.string.end.ruby</string>
+						</dict>
+					</dict>
+					<key>name</key>
+					<string>string.unquoted.heredoc.ruby</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#heredoc</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#interpolated_ruby</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>text.xml</string>
 						</dict>
 						<dict>
 							<key>include</key>
